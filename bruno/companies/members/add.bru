@@ -1,0 +1,22 @@
+meta {
+  name: Add Member
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/companies/{{companyId}}/members
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "userId": "uuid-du-user-supabase",
+    "role": "member"
+  }
+}

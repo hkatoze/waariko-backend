@@ -1,0 +1,35 @@
+meta {
+  name: Create Client
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/clients
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
+
+body:json {
+  {
+    "type": "COMPANY",
+    "name": "Acme Corp",
+    "countryCode": "BJ",
+    "sector": "Commerce",
+    "email": "contact@acme.com",
+    "address": "42 rue des Entrepreneurs, Cotonou",
+    "legalInfo": "SARL au capital de 1 000 000 FCFA",
+    "internalContactName": "Jean Dupont",
+    "internalContactEmail": "jean@acme.com",
+    "internalContactPhone": "+229 97 33 33 33",
+    "internalContactJobTitle": "Directeur Général"
+  }
+}

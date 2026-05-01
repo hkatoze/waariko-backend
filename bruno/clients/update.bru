@@ -1,0 +1,26 @@
+meta {
+  name: Update Client
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/clients/{{clientId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
+
+body:json {
+  {
+    "internalContactPhone": "+229 97 44 44 44",
+    "sector": "Commerce & Distribution"
+  }
+}

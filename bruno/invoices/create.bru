@@ -1,0 +1,53 @@
+meta {
+  name: Create Invoice
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/invoices
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
+
+body:json {
+  {
+    "type": "PROFORMA",
+    "category": "STANDARD",
+    "projectId": "{{projectId}}",
+    "clientId": "{{clientId}}",
+    "subtotal": "5000.00",
+    "discountAmount": "0",
+    "discountRate": "0",
+    "taxRate": "18",
+    "taxAmount": "900.00",
+    "total": "5900.00",
+    "paymentModality": "0",
+    "dueDate": "2026-05-30T00:00:00.000Z",
+    "settlementType": "BANK_TRANSFER",
+    "notes": "Paiement sous 30 jours",
+    "internalNote": "Client VIP",
+    "items": [
+      {
+        "description": "Développement frontend",
+        "quantity": "1",
+        "unitPrice": "3000.00",
+        "total": "3000.00"
+      },
+      {
+        "description": "Développement backend",
+        "quantity": "1",
+        "unitPrice": "2000.00",
+        "total": "2000.00"
+      }
+    ]
+  }
+}

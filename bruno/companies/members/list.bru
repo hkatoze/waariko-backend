@@ -1,0 +1,15 @@
+meta {
+  name: List Members
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/companies/{{companyId}}/members
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Update Project
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/projects/{{projectId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
+
+body:json {
+  {
+    "status": "IN_PROGRESS",
+    "description": "Refonte complète du site vitrine - en cours"
+  }
+}

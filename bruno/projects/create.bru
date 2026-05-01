@@ -1,0 +1,29 @@
+meta {
+  name: Create Project
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/projects
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
+
+body:json {
+  {
+    "name": "Refonte site web",
+    "clientId": "{{clientId}}",
+    "description": "Refonte complète du site vitrine",
+    "status": "DRAFT",
+    "startedAt": "2026-04-20T00:00:00.000Z"
+  }
+}

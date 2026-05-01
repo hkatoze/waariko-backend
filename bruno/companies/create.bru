@@ -1,0 +1,36 @@
+meta {
+  name: Create Company
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/companies
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Ma Société",
+    "profile": "SERVICE_PROVIDER",
+    "sector": "Informatique",
+    "invoiceTemplateId": "template-1",
+    "primaryColor": "#1A56DB",
+    "secondaryColor": "#E3EFFF",
+    "logoUrl": "https://example.com/logo.png",
+    "headOffice": "Cotonou, Bénin",
+    "email": "contact@masociete.com",
+    "phonePrimary": "+229 97 00 00 00",
+    "phoneSecondary": "+229 97 11 11 11",
+    "website": "https://masociete.com",
+    "rccm": "RB/COT/24/A/12345",
+    "ifu": "1234567890123",
+    "legalStatus": "SARL",
+    "bankAccountNumber": "BJ063 01001 000123456789 10"
+  }
+}

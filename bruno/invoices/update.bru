@@ -1,0 +1,27 @@
+meta {
+  name: Update Invoice
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/invoices/{{invoiceId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
+
+body:json {
+  {
+    "notes": "Paiement sous 15 jours",
+    "settlementType": "MOBILE_MONEY",
+    "internalNote": "Relancer le 15/05"
+  }
+}

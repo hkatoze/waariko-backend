@@ -1,0 +1,23 @@
+meta {
+  name: Update Company
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/companies/{{companyId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Ma Société Modifiée",
+    "phonePrimary": "+229 97 22 22 22",
+    "website": "https://masociete-v2.com"
+  }
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Delete Project (soft)
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/projects/{{projectId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Get Invoice
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/invoices/{{invoiceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  x-company-id: {{companyId}}
+}
