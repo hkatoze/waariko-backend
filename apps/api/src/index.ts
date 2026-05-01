@@ -12,13 +12,10 @@ import sales    from './routes/sales.routes'
 const app = new Hono()
 
 app.use(logger())
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()).filter(Boolean)
-
 app.use(cors({
-  origin: allowedOrigins?.length ? allowedOrigins : '*',
+  origin: '*',
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'x-company-id'],
-  credentials: true,
 }))
 
 app.get('/', (c) => c.json({ message: 'Waariko API', version: '2.0.0' }))
