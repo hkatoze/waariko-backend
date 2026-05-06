@@ -58,7 +58,12 @@
       "Bash(xargs sed *)",
       "Bash(/Volumes/DATA/PROJETS/WAARIKO/web/node_modules/.bin/tsc --noEmit --project /Volumes/DATA/PROJETS/WAARIKO/web/tsconfig.json)",
       "Bash(/Volumes/DATA/PROJETS/WAARIKO/web/node_modules/.bin/vite build *)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(npm create *)",
+      "Bash(grep -n \"Panel droit\\\\|self-start\\\\|\\)} $\" /Volumes/DATA/PROJETS/WAARIKO/web/src/features/projects/pages/ProjectDetailPage.tsx)",
+      "Bash(wait)",
+      "Bash(mkdir -p /Volumes/DATA/PROJETS/WAARIKO/web/src/features/invitations/pages)",
+      "Bash(./node_modules/.bin/tsc --noEmit)"
     ]
   }
 }

@@ -1,7 +1,8 @@
 import { pgTable, uuid, text, timestamp, pgEnum, uniqueIndex, index } from 'drizzle-orm/pg-core'
 
-export const companyProfileEnum = pgEnum('company_profile', ['SERVICE_PROVIDER', 'MERCHANT'])
-export const memberRoleEnum = pgEnum('member_role', ['OWNER', 'ADMIN', 'MEMBER'])
+export const companyProfileEnum    = pgEnum('company_profile',    ['SERVICE_PROVIDER', 'MERCHANT'])
+export const memberRoleEnum        = pgEnum('member_role',        ['OWNER', 'ADMIN', 'MEMBER'])
+export const invitationStatusEnum  = pgEnum('invitation_status',  ['PENDING', 'ACCEPTED', 'CANCELLED'])
 
 export const companies = pgTable('companies', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -41,4 +42,20 @@ export const companyMembers = pgTable('company_members', {
   uniqueIndex('uq_company_members_user_company').on(t.userId, t.companyId),
   index('idx_company_members_company').on(t.companyId),
   index('idx_company_members_user').on(t.userId),
+])
+
+export const companyInvitations = pgTable('company_invitations', {
+  id:        uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  email:     text('email').notNull(),
+  role:      memberRoleEnum('role').notNull().default('MEMBER'),
+  token:     uuid('token').defaultRandom().notNull(),
+  status:    invitationStatusEnum('status').notNull().default('PENDING'),
+  invitedBy: text('invited_by').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('uq_company_invitations_token').on(t.token),
+  index('idx_company_invitations_company').on(t.companyId),
+  index('idx_company_invitations_email').on(t.email),
 ])
