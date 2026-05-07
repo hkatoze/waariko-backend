@@ -1,4 +1,4 @@
-import { db, companies, companyMembers, companyInvitations, eq, and, desc } from '@waariko/db'
+import { db, companies, companyMembers, companyInvitations, clients, expenses, sales, stockCategories, stockProducts, eq, and, desc } from '@waariko/db'
 import type { MemberRole, CompanyProfile } from '@waariko/types'
 import { supabase } from '../lib/supabase'
 
@@ -221,4 +221,16 @@ export async function cancelInvitation(companyId: string, invitationId: string) 
     ))
     .returning()
   return updated
+}
+
+export async function resetCompany(companyId: string) {
+  // Supprime toutes les données métier dans le bon ordre (FK constraints)
+  // clients cascade → projects → invoices automatiquement
+  await Promise.all([
+    db.delete(clients).where(eq(clients.companyId, companyId)),
+    db.delete(expenses).where(eq(expenses.companyId, companyId)),
+    db.delete(sales).where(eq(sales.companyId, companyId)),
+    db.delete(stockProducts).where(eq(stockProducts.companyId, companyId)),
+    db.delete(stockCategories).where(eq(stockCategories.companyId, companyId)),
+  ])
 }

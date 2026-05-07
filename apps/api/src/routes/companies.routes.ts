@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { authMiddleware } from '../middleware/auth.middleware'
 import { companyMiddleware } from '../middleware/company.middleware'
 import * as companiesService from '../services/companies.service'
+import { supabase } from '../lib/supabase'
 import type { AppEnv } from '../lib/types'
 
 const app = new Hono<AppEnv>()
@@ -70,6 +71,35 @@ app.patch('/me', companyMiddleware, zValidator('json', updateCompanySchema), asy
   const companyId = c.get('companyId')
   const company   = await companiesService.updateCompany(companyId, c.req.valid('json'))
   return c.json({ data: company })
+})
+
+app.post('/me/reset', companyMiddleware, async (c) => {
+  const companyId = c.get('companyId')
+  await companiesService.resetCompany(companyId)
+  return c.json({ data: null })
+})
+
+app.post('/me/delete-account', async (c) => {
+  const user = c.get('user')
+
+  // 1. Supprimer toutes les sociétés dont l'utilisateur est OWNER (cascade tout)
+  const memberships = await companiesService.getUserCompanies(user.id)
+  const ownedIds = memberships
+    .filter((m: { role: string }) => m.role === 'OWNER')
+    .map((m: { companyId: string }) => m.companyId)
+
+  for (const companyId of ownedIds) {
+    await companiesService.deleteCompany(companyId)
+  }
+
+  // 2. Supprimer le compte Supabase (authMiddleware utilise SERVICE_ROLE)
+  const { error } = await supabase.auth.admin.deleteUser(user.id)
+  if (error) {
+    console.error('[delete-account] Supabase error:', error)
+    return c.json({ error: 'Erreur lors de la suppression du compte' }, 500)
+  }
+
+  return c.json({ data: null })
 })
 
 // ── /invitations/:token (token-based, before /:id to avoid param conflict) ───
