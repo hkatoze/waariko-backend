@@ -80,7 +80,8 @@
       "Bash(pnpm db:migrate)",
       "Bash(DATABASE_URL=\"postgresql://postgres.ubzfparhgfgghvbxzxid:5%3F%2APvRu%2CCSb5%2Fi9@aws-1-eu-central-1.pooler.supabase.com:6543/postgres\" node_modules/.bin/drizzle-kit migrate)",
       "Bash(node /Volumes/DATA/PROJETS/WAARIKO/backend/node_modules/typescript/bin/tsc --noEmit -p /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
-      "Bash(node_modules/.bin/vite build *)"
+      "Bash(node_modules/.bin/vite build *)",
+      "Bash(xargs ls -1)"
     ]
   }
 }

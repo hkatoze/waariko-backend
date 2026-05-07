@@ -39,6 +39,8 @@ const updateCompanySchema = z.object({
   tertiaryColor:     z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   logoUrl:           z.string().url().nullable().optional(),
   signatureUrl:      z.string().url().nullable().optional(),
+  invoiceHeaderUrl:  z.string().url().nullable().optional(),
+  invoiceFooterUrl:  z.string().url().nullable().optional(),
   headOffice:        z.string().optional(),
   email:             z.string().email().nullable().optional(),
   phonePrimary:      z.string().optional(),
