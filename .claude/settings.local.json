@@ -63,7 +63,24 @@
       "Bash(grep -n \"Panel droit\\\\|self-start\\\\|\\)} $\" /Volumes/DATA/PROJETS/WAARIKO/web/src/features/projects/pages/ProjectDetailPage.tsx)",
       "Bash(wait)",
       "Bash(mkdir -p /Volumes/DATA/PROJETS/WAARIKO/web/src/features/invitations/pages)",
-      "Bash(./node_modules/.bin/tsc --noEmit)"
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(cd /Volumes/DATA/PROJETS/WAARIKO/backend/packages/db && cat .env 2>/dev/null || cat ../../.env 2>/dev/null | head -5)",
+      "Bash(mkdir -p /Volumes/DATA/PROJETS/WAARIKO/web/src/features/finances/components)",
+      "Bash(node_modules/.bin/tsc --noEmit -p packages/db/tsconfig.json)",
+      "Bash(node_modules/.bin/tsc --noEmit -p apps/api/tsconfig.json)",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/backend/packages/db/node_modules/.bin/tsc --noEmit -p /Volumes/DATA/PROJETS/WAARIKO/backend/packages/db/tsconfig.json)",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/node_modules/.bin/tsc --noEmit -p /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
+      "Bash(node_modules/.bin/tsc --noEmit --skipLibCheck)",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/web/node_modules/.bin/tsc --noEmit --skipLibCheck -p /Volumes/DATA/PROJETS/WAARIKO/web/tsconfig.json)",
+      "Bash(mkdir -p /Volumes/DATA/PROJETS/WAARIKO/web/src/features/account/components)",
+      "Bash(xargs ls)",
+      "Bash(node_modules/.bin/tsc --noEmit -p tsconfig.json)",
+      "Bash(node /Volumes/DATA/PROJETS/WAARIKO/web/node_modules/typescript/bin/tsc --noEmit -p /Volumes/DATA/PROJETS/WAARIKO/web/tsconfig.json)",
+      "Bash(node -e ' *)",
+      "Bash(pnpm db:migrate)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.ubzfparhgfgghvbxzxid:5%3F%2APvRu%2CCSb5%2Fi9@aws-1-eu-central-1.pooler.supabase.com:6543/postgres\" node_modules/.bin/drizzle-kit migrate)",
+      "Bash(node /Volumes/DATA/PROJETS/WAARIKO/backend/node_modules/typescript/bin/tsc --noEmit -p /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
+      "Bash(node_modules/.bin/vite build *)"
     ]
   }
 }

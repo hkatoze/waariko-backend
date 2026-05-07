@@ -48,6 +48,8 @@ const updateCompanySchema = z.object({
   ifu:               z.string().nullable().optional(),
   ifu2:              z.string().nullable().optional(),
   legalStatus:       z.string().optional(),
+  divisionFiscale:   z.string().nullable().optional(),
+  regimeImposition:  z.string().nullable().optional(),
   bankAccountNumber: z.string().nullable().optional(),
 })
 

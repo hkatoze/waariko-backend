@@ -15,7 +15,11 @@ const createClientSchema = z.object({
   sector: z.string().optional(),
   email: z.string().email().optional(),
   address: z.string().optional(),
-  legalInfo: z.string().optional(),
+  legalInfo:        z.string().optional(),
+  rccm:             z.string().optional(),
+  ifu:              z.string().optional(),
+  divisionFiscale:  z.string().optional(),
+  regimeImposition: z.string().optional(),
   internalContactName: z.string().optional(),
   internalContactEmail: z.string().email().optional(),
   internalContactPhone: z.string().optional(),
@@ -45,7 +49,14 @@ app.get('/:id', async (c) => {
   return c.json({ data: client })
 })
 
-app.patch('/:id', zValidator('json', createClientSchema.partial()), async (c) => {
+const updateClientSchema = createClientSchema.partial().extend({
+  rccm:             z.string().nullable().optional(),
+  ifu:              z.string().nullable().optional(),
+  divisionFiscale:  z.string().nullable().optional(),
+  regimeImposition: z.string().nullable().optional(),
+})
+
+app.patch('/:id', zValidator('json', updateClientSchema), async (c) => {
   const companyId = c.get('companyId')
   const client = await clientsService.updateClient(companyId, c.req.param('id'), c.req.valid('json'))
   if (!client) return c.json({ error: 'Not found' }, 404)

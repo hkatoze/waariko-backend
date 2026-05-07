@@ -24,6 +24,10 @@ export async function createClient(companyId: string, data: {
   email?: string
   address?: string
   legalInfo?: string
+  rccm?: string
+  ifu?: string
+  divisionFiscale?: string
+  regimeImposition?: string
   internalContactName?: string
   internalContactEmail?: string
   internalContactPhone?: string
@@ -35,7 +39,9 @@ export async function createClient(companyId: string, data: {
 
 export async function updateClient(companyId: string, clientId: string, data: Partial<{
   type: ClientType; name: string; countryCode: string; sector: string; email: string
-  address: string; legalInfo: string; internalContactName: string; internalContactEmail: string
+  address: string; legalInfo: string
+  rccm: string | null; ifu: string | null; divisionFiscale: string | null; regimeImposition: string | null
+  internalContactName: string; internalContactEmail: string
   internalContactPhone: string; internalContactJobTitle: string
 }>) {
   const [updated] = await db

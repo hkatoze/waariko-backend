@@ -58,10 +58,11 @@ export async function createCompany(userId: string, data: {
 export async function updateCompany(companyId: string, data: Partial<{
   name: string; profile: CompanyProfile; sector: string; invoiceTemplateId: string
   primaryColor: string; secondaryColor: string | null; tertiaryColor: string | null
-  logoUrl: string | null; signatureUrl: string | null; headOffice: string
+  logoUrl: string | null; signatureUrl: string | null; invoiceHeaderUrl: string | null; invoiceFooterUrl: string | null; headOffice: string
   email: string | null; phonePrimary: string; phoneSecondary: string | null
   website: string | null; rccm: string | null; ifu: string | null; ifu2: string | null
-  legalStatus: string; bankAccountNumber: string | null
+  legalStatus: string; divisionFiscale: string | null; regimeImposition: string | null
+  bankAccountNumber: string | null
 }>) {
   const [updated] = await db
     .update(companies)
