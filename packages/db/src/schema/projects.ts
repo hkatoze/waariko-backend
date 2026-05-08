@@ -2,7 +2,8 @@ import { pgTable, uuid, text, timestamp, numeric, pgEnum, index } from 'drizzle-
 import { companies } from './companies'
 import { clients } from './clients'
 
-export const projectStatusEnum = pgEnum('project_status', ['DRAFT', 'IN_PROGRESS', 'VALIDATED', 'COMPLETED', 'CANCELLED'])
+export const projectStatusEnum  = pgEnum('project_status',  ['DRAFT', 'IN_PROGRESS', 'VALIDATED', 'COMPLETED', 'CANCELLED'])
+export const settlementTypeEnum = pgEnum('settlement_type', ['BANK_TRANSFER', 'CASH', 'CHECK', 'MOBILE_MONEY'])
 
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -13,6 +14,8 @@ export const projects = pgTable('projects', {
   status: projectStatusEnum('status').notNull().default('DRAFT'),
   startedAt: timestamp('started_at').defaultNow().notNull(),
   completedAt: timestamp('completed_at'),
+  depositPaidAt: timestamp('deposit_paid_at'),
+  depositSettlementType: settlementTypeEnum('deposit_settlement_type'),
   deletedAt: timestamp('deleted_at'),
   deletedBy: uuid('deleted_by'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

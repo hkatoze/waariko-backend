@@ -1,11 +1,11 @@
 import { pgTable, uuid, text, timestamp, numeric, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { companies } from './companies'
 import { clients } from './clients'
-import { projects } from './projects'
+import { projects, settlementTypeEnum } from './projects'
 
-export const invoiceTypeEnum = pgEnum('invoice_type', ['PROFORMA', 'FINAL', 'DELIVERY_NOTE'])
+export const invoiceTypeEnum     = pgEnum('invoice_type',     ['PROFORMA', 'FINAL', 'DELIVERY_NOTE'])
 export const invoiceCategoryEnum = pgEnum('invoice_category', ['STANDARD', 'DEPOSIT', 'BALANCE'])
-export const settlementTypeEnum = pgEnum('settlement_type', ['BANK_TRANSFER', 'CASH', 'CHECK', 'MOBILE_MONEY'])
+export { settlementTypeEnum }
 
 export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),

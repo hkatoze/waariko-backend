@@ -99,7 +99,7 @@ export async function getInvoices(companyId: string, includeDeleted = false) {
         divisionFiscale:  clients.divisionFiscale,
         regimeImposition: clients.regimeImposition,
       },
-      project: { id: projects.id, name: projects.name },
+      project: { id: projects.id, name: projects.name, status: projects.status },
     })
     .from(invoices)
     .leftJoin(clients,  eq(invoices.clientId,  clients.id))
@@ -107,7 +107,11 @@ export async function getInvoices(companyId: string, includeDeleted = false) {
     .where(
       includeDeleted
         ? eq(invoices.companyId, companyId)
-        : and(eq(invoices.companyId, companyId), isNull(invoices.deletedAt))
+        : and(
+            eq(invoices.companyId, companyId),
+            isNull(invoices.deletedAt),
+            isNull(projects.deletedAt),
+          )
     )
     .orderBy(desc(invoices.createdAt))
 }
@@ -149,7 +153,7 @@ export async function getInvoice(companyId: string, invoiceId: string) {
         divisionFiscale:  clients.divisionFiscale,
         regimeImposition: clients.regimeImposition,
       },
-      project: { id: projects.id, name: projects.name },
+      project: { id: projects.id, name: projects.name, status: projects.status },
     })
     .from(invoices)
     .leftJoin(clients,  eq(invoices.clientId,  clients.id))
@@ -285,17 +289,18 @@ export async function validateProforma(companyId: string, invoiceId: string) {
   }))
 
   const base = {
-    projectId:      proforma.projectId,
-    clientId:       proforma.clientId,
-    category:       proforma.category ?? undefined,
-    subtotal:       proforma.subtotal  ?? undefined,
-    discountAmount: proforma.discountAmount ?? undefined,
-    discountRate:   proforma.discountRate   ?? undefined,
-    taxRate:        proforma.taxRate   ?? undefined,
-    taxAmount:      proforma.taxAmount ?? undefined,
-    total:          proforma.total     ?? undefined,
-    notes:          proforma.notes     ?? undefined,
-    items:          itemsData,
+    projectId:       proforma.projectId,
+    clientId:        proforma.clientId,
+    category:        proforma.category        ?? undefined,
+    subtotal:        proforma.subtotal         ?? undefined,
+    discountAmount:  proforma.discountAmount   ?? undefined,
+    discountRate:    proforma.discountRate      ?? undefined,
+    taxRate:         proforma.taxRate           ?? undefined,
+    taxAmount:       proforma.taxAmount         ?? undefined,
+    total:           proforma.total             ?? undefined,
+    paymentModality: proforma.paymentModality   ?? undefined,
+    notes:           proforma.notes             ?? undefined,
+    items:           itemsData,
   }
 
   // FINAL et DELIVERY_NOTE partagent le même numéro de séquence que la proforma

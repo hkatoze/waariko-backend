@@ -4,17 +4,19 @@ import type { ProjectStatus } from '@waariko/types'
 export async function getProjects(companyId: string, includeDeleted = false) {
   const rows = await db
     .select({
-      id:          projects.id,
-      name:        projects.name,
-      status:      projects.status,
-      description: projects.description,
-      companyId:   projects.companyId,
-      clientId:    projects.clientId,
-      startedAt:   projects.startedAt,
-      completedAt: projects.completedAt,
-      deletedAt:   projects.deletedAt,
-      createdAt:   projects.createdAt,
-      updatedAt:   projects.updatedAt,
+      id:                   projects.id,
+      name:                 projects.name,
+      status:               projects.status,
+      description:          projects.description,
+      companyId:            projects.companyId,
+      clientId:             projects.clientId,
+      startedAt:            projects.startedAt,
+      completedAt:          projects.completedAt,
+      depositPaidAt:        projects.depositPaidAt,
+      depositSettlementType:projects.depositSettlementType,
+      deletedAt:            projects.deletedAt,
+      createdAt:            projects.createdAt,
+      updatedAt:            projects.updatedAt,
       client: {
         id:   clients.id,
         name: clients.name,
@@ -36,17 +38,19 @@ export async function getProjects(companyId: string, includeDeleted = false) {
 export async function getProject(companyId: string, projectId: string) {
   const [row] = await db
     .select({
-      id:          projects.id,
-      name:        projects.name,
-      status:      projects.status,
-      description: projects.description,
-      companyId:   projects.companyId,
-      clientId:    projects.clientId,
-      startedAt:   projects.startedAt,
-      completedAt: projects.completedAt,
-      deletedAt:   projects.deletedAt,
-      createdAt:   projects.createdAt,
-      updatedAt:   projects.updatedAt,
+      id:                   projects.id,
+      name:                 projects.name,
+      status:               projects.status,
+      description:          projects.description,
+      companyId:            projects.companyId,
+      clientId:             projects.clientId,
+      startedAt:            projects.startedAt,
+      completedAt:          projects.completedAt,
+      depositPaidAt:        projects.depositPaidAt,
+      depositSettlementType:projects.depositSettlementType,
+      deletedAt:            projects.deletedAt,
+      createdAt:            projects.createdAt,
+      updatedAt:            projects.updatedAt,
       client: {
         id:   clients.id,
         name: clients.name,
@@ -103,6 +107,35 @@ export async function restoreProject(companyId: string, projectId: string) {
     .returning()
 
   return updated
+}
+
+export async function recordFirstPayment(
+  companyId: string,
+  projectId: string,
+  settlementType: 'BANK_TRANSFER' | 'CASH' | 'CHECK' | 'MOBILE_MONEY',
+) {
+  // 1. Enregistrer le premier versement sur le projet
+  const [project] = await db
+    .update(projects)
+    .set({ depositPaidAt: new Date(), depositSettlementType: settlementType, updatedAt: new Date() })
+    .where(and(eq(projects.companyId, companyId), eq(projects.id, projectId)))
+    .returning()
+
+  // 2. Marquer la facture FINAL comme partiellement encaissée (settlementType = mode de paiement)
+  //    → permet à la balance finances de comptabiliser le paymentModality (montant acompte)
+  await db
+    .update(invoices)
+    .set({ settlementType, updatedAt: new Date() })
+    .where(
+      and(
+        eq(invoices.companyId, companyId),
+        eq(invoices.projectId, projectId),
+        eq(invoices.type, 'FINAL'),
+        isNull(invoices.deletedAt),
+      )
+    )
+
+  return project
 }
 
 export async function completeProject(

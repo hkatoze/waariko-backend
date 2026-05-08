@@ -82,7 +82,11 @@
       "Bash(node /Volumes/DATA/PROJETS/WAARIKO/backend/node_modules/typescript/bin/tsc --noEmit -p /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
       "Bash(node_modules/.bin/vite build *)",
       "Bash(xargs ls -1)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npx --prefix /Volumes/DATA/PROJETS/WAARIKO/web tsc --noEmit)",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/web/node_modules/.bin/tsc -p /Volumes/DATA/PROJETS/WAARIKO/web/tsconfig.json --noEmit)",
+      "Bash(awk '{print $2}')",
+      "Bash(curl -s http://localhost:5173/)"
     ]
   }
 }

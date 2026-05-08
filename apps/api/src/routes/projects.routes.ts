@@ -65,6 +65,21 @@ app.post('/:id/restore', async (c) => {
   return c.json({ data: project })
 })
 
+app.post('/:id/first-payment', zValidator('json', z.object({
+  settlementType: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'MOBILE_MONEY']),
+})), async (c) => {
+  const companyId = c.get('companyId')
+  const { settlementType } = c.req.valid('json')
+  try {
+    const project = await projectsService.recordFirstPayment(companyId, c.req.param('id'), settlementType)
+    if (!project) return c.json({ error: 'Not found' }, 404)
+    return c.json({ data: project })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur'
+    return c.json({ error: msg }, 400)
+  }
+})
+
 app.post('/:id/complete', zValidator('json', z.object({
   settlementType: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'MOBILE_MONEY']),
 })), async (c) => {
