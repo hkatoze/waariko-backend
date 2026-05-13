@@ -98,7 +98,9 @@
       "Bash(bunx tsc *)",
       "Bash(DATABASE_URL=\"postgresql://postgres.ubzfparhgfgghvbxzxid:5%3F%2APvRu%2CCSb5%2Fi9@aws-1-eu-central-1.pooler.supabase.com:6543/postgres\" bunx drizzle-kit migrate)",
       "Bash(cat > *)",
-      "Bash(curl -s http://localhost:3000/)"
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(git -C /Volumes/DATA/PROJETS/WAARIKO/web status --short)",
+      "Bash(git -C /Volumes/DATA/PROJETS/WAARIKO/web remote -v)"
     ]
   }
 }

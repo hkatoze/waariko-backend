@@ -3,7 +3,7 @@ import crypto from 'node:crypto'
 import { authMiddleware } from '../middleware/auth.middleware'
 import { companyMiddleware } from '../middleware/company.middleware'
 import { supabase } from '../lib/supabase'
-import { db, companyStamps, stampSessions, eq, and, sql } from '@waariko/db'
+import { db, companyStamps, stampSessions, eq, and, sql, isNotNull } from '@waariko/db'
 import type { AppEnv } from '../lib/types'
 
 const app = new Hono<AppEnv>()
@@ -104,26 +104,34 @@ app.post('/sessions/:id/upload', async (c) => {
 app.use(authMiddleware)
 app.use(companyMiddleware)
 
-// GET /stamps  — liste des stickers sauvegardés
+// GET /stamps?projectId=  — stickers du projet uniquement
 app.get('/', async (c) => {
   const companyId = c.get('companyId')
+  const projectId = c.req.query('projectId')
+
   const stamps = await db
     .select()
     .from(companyStamps)
-    .where(eq(companyStamps.companyId, companyId))
+    .where(
+      and(
+        eq(companyStamps.companyId, companyId),
+        projectId ? eq(companyStamps.projectId, projectId) : isNotNull(companyStamps.projectId),
+      )
+    )
     .orderBy(companyStamps.createdAt)
   return c.json({ data: stamps })
 })
 
-// POST /stamps  — sauvegarder un sticker dans la bibliothèque
+// POST /stamps  — sauvegarder un sticker lié à un projet
 app.post('/', async (c) => {
   const companyId = c.get('companyId')
-  const { url, label } = await c.req.json<{ url: string; label?: string }>()
-  if (!url) return c.json({ error: 'url required' }, 400)
+  const { url, label, projectId } = await c.req.json<{ url: string; label?: string; projectId?: string }>()
+  if (!url)       return c.json({ error: 'url required' }, 400)
+  if (!projectId) return c.json({ error: 'projectId required' }, 400)
 
   const [stamp] = await db
     .insert(companyStamps)
-    .values({ companyId, url, label: label ?? '' })
+    .values({ companyId, projectId, url, label: label ?? '' })
     .returning()
 
   return c.json({ data: stamp }, 201)
