@@ -1,47 +1,25 @@
 import { Hono } from 'hono'
-import { streamSSE } from 'hono/streaming'
 import crypto from 'node:crypto'
 import { authMiddleware } from '../middleware/auth.middleware'
 import { companyMiddleware } from '../middleware/company.middleware'
 import { supabase } from '../lib/supabase'
-import { db, companyStamps, eq, and } from '@waariko/db'
+import { db, companyStamps, stampSessions, eq, and, sql } from '@waariko/db'
 import type { AppEnv } from '../lib/types'
 
 const app = new Hono<AppEnv>()
 
-// ── In-memory session store ────────────────────────────────────────────────────
-// Sessions expire après 10 minutes.  On n'a pas besoin de persistance.
-
-type SSEController = {
-  sendEvent: (data: string) => void
-  close:     () => void
-}
-
-type StampSession = {
-  companyId:  string
-  invoiceId:  string
-  expiresAt:  number
-  controllers: Set<SSEController>
-}
-
-const sessions = new Map<string, StampSession>()
-
-// Nettoyage périodique des sessions expirées
-setInterval(() => {
-  const now = Date.now()
-  for (const [id, s] of sessions) {
-    if (s.expiresAt < now) {
-      s.controllers.forEach(c => c.close())
-      sessions.delete(id)
-    }
-  }
-}, 60_000)
-
 // ── Ensure Supabase Storage bucket exists ──────────────────────────────────────
 async function ensureBucket() {
-  await supabase.storage.createBucket('stamps', { public: true }).catch(() => {/* already exists */})
+  await supabase.storage.createBucket('stamps', { public: true }).catch(() => {})
 }
 ensureBucket()
+
+// Nettoyage des sessions expirées toutes les 5 minutes
+setInterval(async () => {
+  await db.delete(stampSessions)
+    .where(sql`${stampSessions.expiresAt} < now()`)
+    .catch(() => {})
+}, 5 * 60_000)
 
 // ── POST /stamps/sessions  — créer une session (auth requis) ───────────────────
 app.post('/sessions', authMiddleware, companyMiddleware, async (c) => {
@@ -49,72 +27,50 @@ app.post('/sessions', authMiddleware, companyMiddleware, async (c) => {
   const { invoiceId } = await c.req.json<{ invoiceId: string }>()
   if (!invoiceId) return c.json({ error: 'invoiceId required' }, 400)
 
-  const sessionId = crypto.randomUUID()
-  sessions.set(sessionId, {
-    companyId,
-    invoiceId,
-    expiresAt:   Date.now() + 10 * 60_000, // 10 min
-    controllers: new Set(),
-  })
+  const expiresAt = new Date(Date.now() + 10 * 60_000) // 10 min
 
-  return c.json({ sessionId })
+  const [session] = await db
+    .insert(stampSessions)
+    .values({ companyId, invoiceId, status: 'waiting', expiresAt })
+    .returning()
+
+  return c.json({ sessionId: session.id })
 })
 
-// ── GET /stamps/sessions/:id/events  — flux SSE (pas d'auth, UUID = secret) ───
-app.get('/sessions/:id/events', async (c) => {
+// ── GET /stamps/sessions/:id/status  — polling (pas d'auth, UUID = secret) ────
+app.get('/sessions/:id/status', async (c) => {
   const sessionId = c.req.param('id')
-  const session   = sessions.get(sessionId)
-  if (!session || session.expiresAt < Date.now()) {
-    return c.json({ error: 'Session introuvable ou expirée' }, 404)
-  }
 
-  return streamSSE(c, async (stream) => {
-    let closed = false
+  const [session] = await db
+    .select()
+    .from(stampSessions)
+    .where(eq(stampSessions.id, sessionId))
+    .limit(1)
 
-    const controller: SSEController = {
-      sendEvent: (data: string) => {
-        if (!closed) stream.writeSSE({ data }).catch(() => {})
-      },
-      close: () => {
-        closed = true
-      },
-    }
+  if (!session) return c.json({ error: 'Session introuvable' }, 404)
+  if (session.expiresAt < new Date()) return c.json({ error: 'Session expirée' }, 410)
 
-    session.controllers.add(controller)
-
-    // Heartbeat toutes les 20s pour garder la connexion vivante
-    const hb = setInterval(() => {
-      if (closed) { clearInterval(hb); return }
-      stream.writeSSE({ data: JSON.stringify({ type: 'ping' }) }).catch(() => {})
-    }, 20_000)
-
-    // Écouter la fermeture du stream côté client
-    c.req.raw.signal.addEventListener('abort', () => {
-      closed = true
-      clearInterval(hb)
-      session.controllers.delete(controller)
-    })
-
-    // Maintenir le stream ouvert jusqu'à fermeture ou expiration
-    while (!closed && session.expiresAt > Date.now()) {
-      await new Promise(r => setTimeout(r, 500))
-    }
-
-    clearInterval(hb)
-    session.controllers.delete(controller)
+  return c.json({
+    status:   session.status,
+    stampUrl: session.stampUrl ?? null,
   })
 })
 
 // ── POST /stamps/sessions/:id/upload  — reçoit la photo (pas d'auth) ──────────
 app.post('/sessions/:id/upload', async (c) => {
   const sessionId = c.req.param('id')
-  const session   = sessions.get(sessionId)
-  if (!session || session.expiresAt < Date.now()) {
-    return c.json({ error: 'Session introuvable ou expirée' }, 404)
-  }
 
-  const body      = await c.req.formData()
-  const file      = body.get('file') as File | null
+  const [session] = await db
+    .select()
+    .from(stampSessions)
+    .where(eq(stampSessions.id, sessionId))
+    .limit(1)
+
+  if (!session) return c.json({ error: 'Session introuvable' }, 404)
+  if (session.expiresAt < new Date()) return c.json({ error: 'Session expirée' }, 410)
+
+  const body = await c.req.formData()
+  const file = body.get('file') as File | null
   if (!file) return c.json({ error: 'Fichier manquant' }, 400)
 
   const ext      = file.type === 'image/jpeg' ? 'jpg' : 'png'
@@ -135,9 +91,11 @@ app.post('/sessions/:id/upload', async (c) => {
 
   const { data: { publicUrl } } = supabase.storage.from('stamps').getPublicUrl(filename)
 
-  // Notifier tous les clients SSE de cette session
-  const payload = JSON.stringify({ type: 'stamp_received', url: publicUrl })
-  session.controllers.forEach(ctrl => ctrl.sendEvent(payload))
+  // Mettre à jour la session en DB
+  await db
+    .update(stampSessions)
+    .set({ status: 'received', stampUrl: publicUrl })
+    .where(eq(stampSessions.id, sessionId))
 
   return c.json({ url: publicUrl })
 })
@@ -183,7 +141,6 @@ app.delete('/:id', async (c) => {
 
   if (!deleted) return c.json({ error: 'Non trouvé' }, 404)
 
-  // Supprimer aussi de Supabase Storage si possible
   const path = deleted.url.split('/stamps/')[1]
   if (path) await supabase.storage.from('stamps').remove([path]).catch(() => {})
 
