@@ -2,6 +2,8 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import companies from './routes/companies.routes'
+import stamps    from './routes/stamps.routes'
+import comptabilite from './routes/comptabilite.routes'
 import contact   from './routes/contact.routes'
 import trash     from './routes/trash.routes'
 import clients from './routes/clients.routes'
@@ -23,6 +25,8 @@ app.use(cors({
 app.get('/', (c) => c.json({ message: 'Waariko API', version: '2.0.0' }))
 
 app.route('/companies', companies)
+app.route('/stamps',    stamps)
+app.route('/comptabilite', comptabilite)
 app.route('/contact',  contact)
 app.route('/trash',    trash)
 app.route('/clients', clients)

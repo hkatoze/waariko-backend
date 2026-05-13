@@ -52,6 +52,7 @@ const updateInvoiceSchema = z.object({
   settlementType: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'MOBILE_MONEY']).optional(),
   notes: z.string().optional(),
   internalNote: z.string().optional(),
+  items: z.array(invoiceItemSchema).min(1).optional(),
 })
 
 app.use(authMiddleware)

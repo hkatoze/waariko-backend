@@ -99,7 +99,7 @@ export async function getInvoices(companyId: string, includeDeleted = false) {
         divisionFiscale:  clients.divisionFiscale,
         regimeImposition: clients.regimeImposition,
       },
-      project: { id: projects.id, name: projects.name, status: projects.status },
+      project: { id: projects.id, name: projects.name, status: projects.status, currency: projects.currency },
     })
     .from(invoices)
     .leftJoin(clients,  eq(invoices.clientId,  clients.id))
@@ -153,7 +153,7 @@ export async function getInvoice(companyId: string, invoiceId: string) {
         divisionFiscale:  clients.divisionFiscale,
         regimeImposition: clients.regimeImposition,
       },
-      project: { id: projects.id, name: projects.name, status: projects.status },
+      project: { id: projects.id, name: projects.name, status: projects.status, currency: projects.currency },
     })
     .from(invoices)
     .leftJoin(clients,  eq(invoices.clientId,  clients.id))
@@ -244,12 +244,23 @@ export async function updateInvoice(companyId: string, invoiceId: string, data: 
   discountRate: string; taxRate: string; taxAmount: string; total: string
   paymentModality: string; issuedAt: Date; dueDate: Date; settlementType: SettlementType
   notes: string; internalNote: string
+  items: { description: string; quantity: string; unitPrice: string; total: string }[]
 }>) {
+  const { items, ...invoiceData } = data
+
   const [updated] = await db
     .update(invoices)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...invoiceData, updatedAt: new Date() })
     .where(and(eq(invoices.companyId, companyId), eq(invoices.id, invoiceId)))
     .returning()
+
+  // Remplace les items si fournis (delete + re-insert)
+  if (items && items.length > 0) {
+    await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId))
+    await db.insert(invoiceItems).values(
+      items.map(item => ({ ...item, invoiceId }))
+    )
+  }
 
   return updated
 }

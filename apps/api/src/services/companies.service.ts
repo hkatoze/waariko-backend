@@ -1,6 +1,7 @@
-import { db, companies, companyMembers, companyInvitations, clients, expenses, sales, stockCategories, stockProducts, eq, and, desc } from '@waariko/db'
+import { db, companies, companyMembers, companyInvitations, clients, expenses, sales, stockCategories, stockProducts, invoiceSequences, eq, and, desc, sql } from '@waariko/db'
 import type { MemberRole, CompanyProfile } from '@waariko/types'
 import { supabase } from '../lib/supabase'
+import { sendInvitationEmail } from '../lib/email'
 
 export async function getUserCompanies(userId: string) {
   const rows = await db
@@ -158,19 +159,49 @@ export async function sendInvitation(
     .returning()
 
   // Send invitation email via Supabase auth admin
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+  const frontendUrl = (process.env.FRONTEND_URL ?? 'http://localhost:5173').trim().replace(/\/$/, '')
   const redirectTo  = `${frontendUrl}/invitation/accept?token=${invitation.token}`
 
-  const { error } = await supabase.auth.admin.inviteUserByEmail(normalizedEmail, {
+  const { data: inviteData, error } = await supabase.auth.admin.inviteUserByEmail(normalizedEmail, {
     redirectTo,
     data: { invitation_token: invitation.token, company_name: companyName },
   })
 
   if (error) {
+    console.error('[sendInvitation] Supabase error — status:', error.status, '— message:', error.message)
+
+    // Si l'utilisateur existe déjà dans Supabase (compte confirmé),
+    // inviteUserByEmail échoue. On lui envoie un magic link à la place.
+    if (
+      error.message?.toLowerCase().includes('already registered') ||
+      error.message?.toLowerCase().includes('already been invited') ||
+      error.message?.toLowerCase().includes('user already exists') ||
+      error.status === 422
+    ) {
+      const { data: linkData, error: mlError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: normalizedEmail,
+        options: {
+          redirectTo,
+          data: { invitation_token: invitation.token, company_name: companyName },
+        },
+      })
+      if (mlError) {
+        await db.delete(companyInvitations).where(eq(companyInvitations.id, invitation.id))
+        throw new Error(`Email sending failed: ${mlError.message}`)
+      }
+      // Magic link généré — on l'envoie via Resend (ou log en dev si pas de clé)
+      const magicLink = linkData?.properties?.action_link ?? redirectTo
+      await sendInvitationEmail({ to: normalizedEmail, companyName, magicLink })
+      return invitation
+    }
+
     // Roll back the invitation record if email sending failed
     await db.delete(companyInvitations).where(eq(companyInvitations.id, invitation.id))
     throw new Error(`Email sending failed: ${error.message}`)
   }
+
+  console.log('[sendInvitation] Invite sent successfully to', normalizedEmail, inviteData?.user?.id)
 
   return invitation
 }
@@ -221,6 +252,40 @@ export async function cancelInvitation(companyId: string, invitationId: string) 
     ))
     .returning()
   return updated
+}
+
+// ── Numérotation des factures ─────────────────────────────────────────────────
+
+/**
+ * Retourne le prochain numéro de facture pour l'année en cours.
+ * Si aucune séquence n'existe, le premier sera 1.
+ */
+export async function getInvoiceSequence(companyId: string) {
+  const year = new Date().getFullYear()
+  const [row] = await db
+    .select({ lastSeq: invoiceSequences.lastSeq })
+    .from(invoiceSequences)
+    .where(and(
+      eq(invoiceSequences.companyId, companyId),
+      eq(invoiceSequences.year, year),
+    ))
+  return { year, nextNumber: (row?.lastSeq ?? 0) + 1 }
+}
+
+/**
+ * Définit le numéro de départ des factures pour l'année en cours.
+ * Stocke lastSeq = startNumber - 1 pour que la prochaine facture
+ * créée reçoive le numéro startNumber.
+ */
+export async function setInvoiceStartNumber(companyId: string, startNumber: number) {
+  const year = new Date().getFullYear()
+  await db
+    .insert(invoiceSequences)
+    .values({ companyId, year, lastSeq: startNumber - 1 })
+    .onConflictDoUpdate({
+      target: [invoiceSequences.companyId, invoiceSequences.year],
+      set:    { lastSeq: sql`${startNumber - 1}` },
+    })
 }
 
 export async function resetCompany(companyId: string) {

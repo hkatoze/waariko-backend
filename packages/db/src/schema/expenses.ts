@@ -14,6 +14,8 @@ export const expenses = pgTable('expenses', {
   type:        text('type'),
   status:      expenseStatusEnum('status').notNull().default('IN_PROGRESS'),
   isRecurring: boolean('is_recurring').notNull().default(false),
+  taxRate:     numeric('tax_rate', { precision: 5, scale: 2 }),
+  taxAmount:   numeric('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'),
   notes:       text('notes'),
   deletedAt:   timestamp('deleted_at'),
   createdAt:   timestamp('created_at').defaultNow().notNull(),

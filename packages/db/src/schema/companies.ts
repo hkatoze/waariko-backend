@@ -29,6 +29,7 @@ export const companies = pgTable('companies', {
   divisionFiscale: text('division_fiscale'),
   regimeImposition: text('regime_imposition'),
   bankAccountNumber: text('bank_account_number'),
+  currency: text('currency').notNull().default('FCFA'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

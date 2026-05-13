@@ -11,6 +11,8 @@ const app = new Hono<AppEnv>()
 app.use('*', authMiddleware)
 app.use('*', companyMiddleware)
 
+const amountField = z.string().regex(/^\d+(\.\d{1,2})?$/).optional()
+
 const createSchema = z.object({
   title:       z.string().min(1),
   amount:      z.string().regex(/^\d+(\.\d{1,2})?$/),
@@ -20,6 +22,8 @@ const createSchema = z.object({
   status:      z.enum(['IN_PROGRESS', 'COMPLETED']).optional(),
   isRecurring: z.boolean().optional(),
   notes:       z.string().optional(),
+  taxRate:     amountField,
+  taxAmount:   amountField,
 })
 
 // GET /expenses
@@ -28,6 +32,19 @@ app.get('/', async (c) => {
   const { from, to } = c.req.query()
   const data = await svc.getExpenses(companyId, { from, to })
   return c.json({ data })
+})
+
+const updateSchema = z.object({
+  title:       z.string().min(1).optional(),
+  amount:      z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+  expenseDate: z.string().optional(),
+  projectId:   z.string().uuid().optional().nullable(),
+  type:        z.string().optional(),
+  status:      z.enum(['IN_PROGRESS', 'COMPLETED']).optional(),
+  isRecurring: z.boolean().optional(),
+  notes:       z.string().optional(),
+  taxRate:     amountField,
+  taxAmount:   amountField,
 })
 
 // POST /expenses
@@ -42,12 +59,15 @@ app.post('/', zValidator('json', createSchema), async (c) => {
 })
 
 // PATCH /expenses/:id
-app.patch('/:id', async (c) => {
+app.patch('/:id', zValidator('json', updateSchema), async (c) => {
   const companyId = c.get('companyId')
   const expenseId = c.req.param('id')
-  const body = await c.req.json()
-  if (body.expenseDate) body.expenseDate = new Date(body.expenseDate)
-  const expense = await svc.updateExpense(companyId, expenseId, body)
+  const { expenseDate, ...rest } = c.req.valid('json')
+  const data = {
+    ...rest,
+    ...(expenseDate ? { expenseDate: new Date(expenseDate) } : {}),
+  }
+  const expense = await svc.updateExpense(companyId, expenseId, data)
   return c.json({ data: expense })
 })
 

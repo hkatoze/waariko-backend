@@ -50,6 +50,32 @@ app.patch('/:id', zValidator('json', createProjectSchema.partial()), async (c) =
   return c.json({ data: project })
 })
 
+// ── Devise du projet ──────────────────────────────────────────────────────────
+app.patch('/:id/currency', zValidator('json', z.object({
+  currency: z.string().min(1).max(10).nullable(),
+})), async (c) => {
+  const companyId = c.get('companyId')
+  const { currency } = c.req.valid('json')
+  const project = await projectsService.updateProject(companyId, c.req.param('id'), { currency: currency ?? undefined })
+  if (!project) return c.json({ error: 'Not found' }, 404)
+  return c.json({ data: project })
+})
+
+// ── Copie d'un projet vers un client cible ───────────────────────────────────
+app.post('/:id/copy', zValidator('json', z.object({
+  clientId: z.string().uuid(),
+})), async (c) => {
+  const companyId = c.get('companyId')
+  try {
+    const { clientId } = c.req.valid('json')
+    const newProject = await projectsService.copyProject(companyId, c.req.param('id'), clientId)
+    return c.json({ data: newProject }, 201)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur lors de la copie'
+    return c.json({ error: msg }, 400)
+  }
+})
+
 app.delete('/:id', async (c) => {
   const companyId = c.get('companyId')
   const user = c.get('user')

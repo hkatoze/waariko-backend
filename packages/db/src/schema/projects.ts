@@ -14,6 +14,7 @@ export const projects = pgTable('projects', {
   status: projectStatusEnum('status').notNull().default('DRAFT'),
   startedAt: timestamp('started_at').defaultNow().notNull(),
   completedAt: timestamp('completed_at'),
+  currency: text('currency'),           // NULL = hérite de la devise de l'entreprise
   depositPaidAt: timestamp('deposit_paid_at'),
   depositSettlementType: settlementTypeEnum('deposit_settlement_type'),
   deletedAt: timestamp('deleted_at'),

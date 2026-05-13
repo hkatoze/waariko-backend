@@ -54,6 +54,7 @@ const updateCompanySchema = z.object({
   divisionFiscale:   z.string().nullable().optional(),
   regimeImposition:  z.string().nullable().optional(),
   bankAccountNumber: z.string().nullable().optional(),
+  currency:          z.string().min(1).max(10).optional(),
 })
 
 app.use(authMiddleware)
@@ -71,6 +72,23 @@ app.patch('/me', companyMiddleware, zValidator('json', updateCompanySchema), asy
   const companyId = c.get('companyId')
   const company   = await companiesService.updateCompany(companyId, c.req.valid('json'))
   return c.json({ data: company })
+})
+
+// ── Numérotation des factures ─────────────────────────────────────────────────
+
+app.get('/me/invoice-sequence', companyMiddleware, async (c) => {
+  const companyId = c.get('companyId')
+  const seq = await companiesService.getInvoiceSequence(companyId)
+  return c.json({ data: seq })
+})
+
+app.patch('/me/invoice-sequence', companyMiddleware, zValidator('json', z.object({
+  startNumber: z.number().int().min(1).max(99999),
+})), async (c) => {
+  const companyId = c.get('companyId')
+  const { startNumber } = c.req.valid('json')
+  await companiesService.setInvoiceStartNumber(companyId, startNumber)
+  return c.json({ data: { startNumber } })
 })
 
 app.post('/me/reset', companyMiddleware, async (c) => {
@@ -188,7 +206,19 @@ app.get('/:id/members', async (c) => {
   if (!role) return c.json({ error: 'Forbidden' }, 403)
 
   const members = await companiesService.getMembers(companyId)
-  return c.json({ data: members })
+
+  // Enrichit chaque membre avec son email depuis Supabase Auth
+  const userIds = members.map(m => m.userId)
+  const emailMap: Record<string, string> = {}
+  await Promise.all(
+    userIds.map(async (uid) => {
+      const { data } = await supabase.auth.admin.getUserById(uid)
+      if (data?.user?.email) emailMap[uid] = data.user.email
+    })
+  )
+
+  const enriched = members.map(m => ({ ...m, email: emailMap[m.userId] ?? null }))
+  return c.json({ data: enriched })
 })
 
 app.patch('/:id/members/:userId', zValidator('json', z.object({ role: z.enum(['ADMIN', 'MEMBER']) })), async (c) => {

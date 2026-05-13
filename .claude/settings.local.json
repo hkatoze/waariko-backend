@@ -86,7 +86,19 @@
       "Bash(npx --prefix /Volumes/DATA/PROJETS/WAARIKO/web tsc --noEmit)",
       "Bash(/Volumes/DATA/PROJETS/WAARIKO/web/node_modules/.bin/tsc -p /Volumes/DATA/PROJETS/WAARIKO/web/tsconfig.json --noEmit)",
       "Bash(awk '{print $2}')",
-      "Bash(curl -s http://localhost:5173/)"
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/backend/node_modules/.bin/tsc --noEmit --project /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/backend/node_modules/.bun/typescript@5.9.3/node_modules/typescript/bin/tsc --noEmit --project /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(pkill -f \"bun.*api\")",
+      "Read(//tmp/**)",
+      "Bash(tail -30 /tmp/waariko-backend.log 2>/dev/null || ps aux | grep \"bun.*index\" | grep -v grep | head -3)",
+      "Bash(xargs cat)",
+      "Bash(pnpm add *)",
+      "Bash(bunx tsc *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.ubzfparhgfgghvbxzxid:5%3F%2APvRu%2CCSb5%2Fi9@aws-1-eu-central-1.pooler.supabase.com:6543/postgres\" bunx drizzle-kit migrate)",
+      "Bash(cat > *)",
+      "Bash(curl -s http://localhost:3000/)"
     ]
   }
 }

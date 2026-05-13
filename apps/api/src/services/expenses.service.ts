@@ -15,6 +15,8 @@ export async function getExpenses(
       type:        expenses.type,
       status:      expenses.status,
       isRecurring: expenses.isRecurring,
+      taxRate:     expenses.taxRate,
+      taxAmount:   expenses.taxAmount,
       notes:       expenses.notes,
       createdAt:   expenses.createdAt,
       project: { id: projects.id, name: projects.name },
@@ -38,11 +40,13 @@ export async function createExpense(companyId: string, data: {
   title:       string
   amount:      string
   expenseDate: Date
-  projectId?:  string
+  projectId?:  string | null
   type?:       string
   status?:     'IN_PROGRESS' | 'COMPLETED'
   isRecurring?: boolean
   notes?:      string
+  taxRate?:    string
+  taxAmount?:  string
 }) {
   const [row] = await db
     .insert(expenses)
@@ -54,7 +58,7 @@ export async function createExpense(companyId: string, data: {
 export async function updateExpense(companyId: string, expenseId: string, data: Partial<{
   title: string; amount: string; expenseDate: Date
   projectId: string | null; type: string; status: 'IN_PROGRESS' | 'COMPLETED'
-  isRecurring: boolean; notes: string
+  isRecurring: boolean; notes: string; taxRate: string; taxAmount: string
 }>) {
   const [row] = await db
     .update(expenses)
