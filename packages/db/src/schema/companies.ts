@@ -17,6 +17,7 @@ export const companies = pgTable('companies', {
   signatureUrl: text('signature_url'),
   invoiceHeaderUrl: text('invoice_header_url'),
   invoiceFooterUrl: text('invoice_footer_url'),
+  cachetUrl:        text('cachet_url'),
   headOffice: text('head_office').notNull(),
   email: text('email'),
   phonePrimary: text('phone_primary').notNull(),

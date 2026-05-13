@@ -42,6 +42,7 @@ const updateCompanySchema = z.object({
   signatureUrl:      z.string().url().nullable().optional(),
   invoiceHeaderUrl:  z.string().url().nullable().optional(),
   invoiceFooterUrl:  z.string().url().nullable().optional(),
+  cachetUrl:         z.string().url().nullable().optional(),
   headOffice:        z.string().optional(),
   email:             z.string().email().nullable().optional(),
   phonePrimary:      z.string().optional(),

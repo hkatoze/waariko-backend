@@ -100,7 +100,10 @@
       "Bash(cat > *)",
       "Bash(curl -s http://localhost:3000/)",
       "Bash(git -C /Volumes/DATA/PROJETS/WAARIKO/web status --short)",
-      "Bash(git -C /Volumes/DATA/PROJETS/WAARIKO/web remote -v)"
+      "Bash(git -C /Volumes/DATA/PROJETS/WAARIKO/web remote -v)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(/Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/node_modules/.bin/tsc --noEmit --project /Volumes/DATA/PROJETS/WAARIKO/backend/apps/api/tsconfig.json)",
+      "Bash(psql postgresql://postgres.ubzfparhgfgghvbxzxid:5%3F%2APvRu%2CCSb5%2Fi9@aws-1-eu-central-1.pooler.supabase.com:6543/postgres -c '\\\\d companies')"
     ]
   }
 }
