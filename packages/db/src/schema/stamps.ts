@@ -19,7 +19,7 @@ export const companyStamps = pgTable('company_stamps', {
 export const stampSessions = pgTable('stamp_sessions', {
   id:         uuid('id').primaryKey().defaultRandom(),
   companyId:  uuid('company_id').notNull(),
-  invoiceId:  uuid('invoice_id').notNull(),
+  invoiceId:  uuid('invoice_id'),   // nullable : aussi utilisé pour les reçus de dépenses
   status:     text('status').notNull().default('waiting'),  // 'waiting' | 'received'
   stampUrl:   text('stamp_url'),
   expiresAt:  timestamp('expires_at').notNull(),

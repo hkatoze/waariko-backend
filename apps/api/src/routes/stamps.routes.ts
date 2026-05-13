@@ -24,14 +24,14 @@ setInterval(async () => {
 // ── POST /stamps/sessions  — créer une session (auth requis) ───────────────────
 app.post('/sessions', authMiddleware, companyMiddleware, async (c) => {
   const companyId = c.get('companyId')
-  const { invoiceId } = await c.req.json<{ invoiceId: string }>()
-  if (!invoiceId) return c.json({ error: 'invoiceId required' }, 400)
+  const body = await c.req.json<{ invoiceId?: string | null }>().catch(() => ({ invoiceId: null }))
+  const invoiceId = body.invoiceId ?? null   // optionnel : null pour les reçus de dépenses
 
   const expiresAt = new Date(Date.now() + 10 * 60_000) // 10 min
 
   const [session] = await db
     .insert(stampSessions)
-    .values({ companyId, invoiceId, status: 'waiting', expiresAt })
+    .values({ companyId, invoiceId: invoiceId ?? undefined, status: 'waiting', expiresAt })
     .returning()
 
   return c.json({ sessionId: session.id })

@@ -22,6 +22,7 @@ const createSchema = z.object({
   status:      z.enum(['IN_PROGRESS', 'COMPLETED']).optional(),
   isRecurring: z.boolean().optional(),
   notes:       z.string().optional(),
+  receiptUrl:  z.string().url().nullable().optional(),
   taxRate:     amountField,
   taxAmount:   amountField,
 })
@@ -43,6 +44,7 @@ const updateSchema = z.object({
   status:      z.enum(['IN_PROGRESS', 'COMPLETED']).optional(),
   isRecurring: z.boolean().optional(),
   notes:       z.string().optional(),
+  receiptUrl:  z.string().url().nullable().optional(),
   taxRate:     amountField,
   taxAmount:   amountField,
 })

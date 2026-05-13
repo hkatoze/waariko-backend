@@ -17,6 +17,7 @@ export const expenses = pgTable('expenses', {
   taxRate:     numeric('tax_rate', { precision: 5, scale: 2 }),
   taxAmount:   numeric('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'),
   notes:       text('notes'),
+  receiptUrl:  text('receipt_url'),
   deletedAt:   timestamp('deleted_at'),
   createdAt:   timestamp('created_at').defaultNow().notNull(),
   updatedAt:   timestamp('updated_at').defaultNow().notNull(),
