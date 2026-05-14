@@ -58,6 +58,15 @@ const updateCompanySchema = z.object({
   currency:          z.string().min(1).max(10).optional(),
 })
 
+// ── Routes publiques (avant authMiddleware) ───────────────────────────────────
+// GET /invitations/:token — lecture publique, le token UUID fait office de secret
+app.get('/invitations/:token', async (c) => {
+  const token = c.req.param('token')
+  const invitation = await companiesService.getInvitationByToken(token)
+  if (!invitation) return c.json({ error: 'Invitation not found' }, 404)
+  return c.json({ data: invitation })
+})
+
 app.use(authMiddleware)
 
 // ── /me routes (header x-company-id) ─────────────────────────────────────────
@@ -121,14 +130,7 @@ app.post('/me/delete-account', async (c) => {
   return c.json({ data: null })
 })
 
-// ── /invitations/:token (token-based, before /:id to avoid param conflict) ───
-
-app.get('/invitations/:token', async (c) => {
-  const token = c.req.param('token')
-  const invitation = await companiesService.getInvitationByToken(token)
-  if (!invitation) return c.json({ error: 'Invitation not found' }, 404)
-  return c.json({ data: invitation })
-})
+// ── /invitations/:token/accept (auth requis) ─────────────────────────────────
 
 app.post('/invitations/:token/accept', async (c) => {
   const user  = c.get('user')
