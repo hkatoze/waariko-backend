@@ -178,6 +178,29 @@ export async function sendInvitation(
       error.message?.toLowerCase().includes('user already exists') ||
       error.status === 422
     ) {
+      // Pour un utilisateur existant, generateLink ne met pas à jour user_metadata.
+      // On force la mise à jour via updateUserById pour que AuthCallbackPage
+      // lise toujours le token courant, même si l'ancien est encore en cache.
+      try {
+        const supabaseUrl    = process.env.SUPABASE_URL!
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+        const resp = await fetch(
+          `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(normalizedEmail)}&page=1&per_page=1`,
+          { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+        )
+        if (resp.ok) {
+          const json = await resp.json() as { users?: { id: string }[] }
+          const userId = json.users?.[0]?.id
+          if (userId) {
+            await supabase.auth.admin.updateUserById(userId, {
+              user_metadata: { invitation_token: invitation.token, company_name: companyName },
+            })
+          }
+        }
+      } catch (metaErr) {
+        console.warn('[sendInvitation] Could not update user_metadata:', metaErr)
+      }
+
       const { data: linkData, error: mlError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: normalizedEmail,
